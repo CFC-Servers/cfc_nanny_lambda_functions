@@ -27,7 +27,7 @@ class SSHRunner:
 async def main():
     ssh = SSHRunner(HOST, port=PORT, username=USERNAME, private_key=bytes(PRIVATE_KEY, "utf-8"))
 
-    result = await ssh.run_command("cd /var/steam/gmod/cfc3 && ./cfc3 restart")
+    result = await ssh.run_command("cd /var/steam/gmod/cfc-test && ./cfctest restart")
 
     return { "stdout": result.stdout }
 
