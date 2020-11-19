@@ -15,7 +15,7 @@ def get_allowed_keys(route):
     route = route.replace("-", "_")
     route = route.upper()
 
-    allowed_key_names = os.environ.get("{}_AUTH".format(route), None)
+    allowed_key_names = os.getenv(f"{route}_AUTH")
 
     if not allowed_key_names:
         return None
@@ -23,10 +23,10 @@ def get_allowed_keys(route):
     allowed_keys = set()
     allowed_key_names = auth_keys.split(",")
     for key_name in allowed_key_names:
-        key = os.environ.get(key_name, None)
+        key = os.getenv(key_name)
 
         if not key:
-            print("Erorr! Couldn't find key in environment: {}".format(key_name))
+            print(f"Warning! Couldn't find key in environment: {key_name}")
             continue
 
         allowed_keys.add(key)
@@ -58,4 +58,3 @@ def lambda_handler(event, context):
         return accept()
 
     return deny()
-
