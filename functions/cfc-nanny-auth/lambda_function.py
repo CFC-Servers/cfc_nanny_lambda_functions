@@ -21,7 +21,7 @@ def get_allowed_keys(route):
         return None
 
     allowed_keys = set()
-    allowed_key_names = allowed_keys.split(",")
+    allowed_key_names = allowed_key_names.split(",")
     for key_name in allowed_key_names:
         key = os.getenv(key_name)
 
