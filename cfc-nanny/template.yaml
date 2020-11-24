@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  CFC Nanny
+
+  performs actions on cfc game servers
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Parameters:
+  NannySSHPrivateKey:
+    Description: Required. The ssh private key to use for ssh lambda actions
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'NannySSHPrivateKey'
+
+Globals:
+  Function:
+    Timeout: 60
+    Runtime: python3.8
+
+Resources:
+  NannyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Auth:
+        DefaultAuthorizer: NannyRequestAuthorizer
+        Authorizers:
+          NannyRequestAuthorizer:
+            FunctionArn: !GetAtt CFCNannyAuthFunction.Arn
+            Identity:
+              Headers:
+                - Authorization
+            AuthorizerPayloadFormatVersion: 2.0
+            EnableSimpleResponses: true
+  
+  # auth
+  CFCNannyAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/cfc_nanny_auth/
+      Handler: authorizer.handler
+      Runtime: python3.8
+
+  # Functions
+  CFCTestRestartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/cfctest_restart/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref RestartDepLayer
+      Environment:
+        Variables:
+          private_key: !Ref NannySSHPrivateKey
+      Events:
+        CFCTestRestart:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NannyApi
+            Path: /cfctest-restart
+            Method: post
+
+
+  CFC3RestartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/cfc3_restart/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - !Ref RestartDepLayer
+      Environment:
+        Variables:
+          private_key: !Ref NannySSHPrivateKey
+      Events:
+        CFC3Restart:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NannyApi
+            Path: /cfc3-restart
+            Method: post
+
+  RestartDepLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: nanny-restart-dependencies
+      Description: Dependencies for cfc nanny restart
+      ContentUri: layers/restart_dependencies
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
