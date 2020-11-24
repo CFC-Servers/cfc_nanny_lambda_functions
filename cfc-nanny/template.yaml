@@ -13,6 +13,11 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'NannySSHPrivateKey'
 
+  NannyAuthJsonEnv:
+    Description: Required. json data defining the auth environments
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'NannyAuthJsonEnv'
+
 Globals:
   Function:
     Timeout: 60
@@ -32,15 +37,16 @@ Resources:
                 - Authorization
             AuthorizerPayloadFormatVersion: 2.0
             EnableSimpleResponses: true
-  
+
   # auth
   CFCNannyAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/cfc_nanny_auth/
       Handler: authorizer.handler
-      Runtime: python3.8
-
+      Environment:
+        Variables:
+          JSON_ENV: !Ref NannyAuthJsonEnv
   # Functions
   CFCTestRestartFunction:
     Type: AWS::Serverless::Function
@@ -67,7 +73,7 @@ Resources:
     Properties:
       CodeUri: src/cfc3_restart/
       Handler: app.lambda_handler
-      Runtime: python3.8
+
       Layers:
         - !Ref RestartDepLayer
       Environment:
