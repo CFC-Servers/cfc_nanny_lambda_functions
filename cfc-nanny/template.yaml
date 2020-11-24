@@ -45,7 +45,7 @@ Resources:
             AuthorizerPayloadFormatVersion: 2.0
             EnableSimpleResponses: true
 
-  # auth
+  # Auth
   CFCNannyAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -73,7 +73,6 @@ Resources:
             Path: /cfctest-restart
             Method: post
 
-
   CFC3RestartFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -91,12 +90,41 @@ Resources:
             Path: /cfc3-restart
             Method: post
 
+  CFCTestRconFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/cfctest_rcon/
+      Handler: app.lambda_handler
+
+      Layers:
+        - !Ref RconDepLayer
+      Events:
+        CFCTestRconCommand:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NannyApi
+            Path: /cfctest-rcon
+            Method: post
+
+  # Layers
   RestartDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: nanny-restart-dependencies
       Description: Dependencies for cfc nanny restart
       ContentUri: layers/restart_dependencies
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
+  RconDepLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: nanny-rcon-dependencies
+      Description: Dependencies for cfc nanny rcon
+      ContentUri: layers/rcon_dependencies
       CompatibleRuntimes:
         - python3.8
       RetentionPolicy: Retain
