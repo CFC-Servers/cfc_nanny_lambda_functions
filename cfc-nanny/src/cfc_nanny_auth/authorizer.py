@@ -1,5 +1,6 @@
 import json
 import os
+from json.decoder import JSONDecodeError
 
 def is_authorized(authorized):
     return { "isAuthorized": authorized }
@@ -10,12 +11,22 @@ def deny():
 def accept():
     return is_authorized(True)
 
+def get_env(env_name):
+    auth_config = {}
+    try:
+        if auth_config_string := os.getenv("JSON_ENV"):
+            auth_config = json.loads(auth_config_string)
+    except:
+        pass
+
+    return os.getenv(env_name) or auth_config.get(env_name, None)
+
 def get_allowed_keys(route):
     route = route.replace("/", "")
     route = route.replace("-", "_")
     route = route.upper()
 
-    allowed_key_names = os.getenv(f"{route}_AUTH")
+    allowed_key_names = get_env(f"{route}_ALLOWED")
 
     if not allowed_key_names:
         return None
@@ -23,7 +34,7 @@ def get_allowed_keys(route):
     allowed_keys = set()
     allowed_key_names = allowed_key_names.split(",")
     for key_name in allowed_key_names:
-        key = os.getenv(key_name)
+        key = get_env(key_name)
 
         if not key:
             print(f"Warning! Couldn't find key in environment: {key_name}")
