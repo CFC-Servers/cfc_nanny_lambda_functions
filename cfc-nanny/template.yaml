@@ -18,6 +18,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'NannyAuthJsonEnv'
 
+  CFCTestRconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFCTestRconPassword'
+
 Globals:
   Function:
     Timeout: 60
@@ -98,6 +102,11 @@ Resources:
 
       Layers:
         - !Ref RconDepLayer
+      Environment:
+        Variables:
+          RCON_PORT: "27016"
+          RCON_IP: "172.245.14.234"
+          RCON_PASSWORD: !Ref CFCTestRconPassword
       Events:
         CFCTestRconCommand:
           Type: HttpApi
