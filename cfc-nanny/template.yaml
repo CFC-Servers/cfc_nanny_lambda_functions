@@ -97,6 +97,11 @@ Resources:
   CFCTestRconFunction:
     Type: AWS::Serverless::Function
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e1b04d82e5e43b86
+        SubnetIds:
+          - subnet-0591f35ebb61a5df9
       CodeUri: src/cfctest_rcon/
       Handler: app.lambda_handler
 
