@@ -1,15 +1,38 @@
 from cfcrconinterface import RCONInterface
+import json
+
+def response(status=200, response=None, error=None):
+    body = {}
+
+    if response:
+        body["result"] = response
+
+    if error:
+        body["error"] = error
+
+    body = json.dumps(body)
+
+    return {
+        "statusCode": status,
+        "body": body
+    }
 
 def lambda_handler(event, context):
     interface = RCONInterface()
 
-    command = event.get("body", None)
+    body = event.get("body", None)
+
+    if body is None:
+        return response(status=400, error="Received empty body")
+
+    body = json.loads(body)
+    command = body.get("command", None)
+
     if command is None:
-        print("Command is none, returning empty response")
-        return {}
+        return response(status=400, error="Did not receive a command")
 
-    success, response = interface.issue_command(command)
+    success, result = interface.issue_command(command)
     if success:
-        return {"response": response}
+        return response(response=result)
 
-    return {"error": str(response)}
+    return response(status=500, error=result)
