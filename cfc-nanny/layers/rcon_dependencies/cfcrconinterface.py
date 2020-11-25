@@ -20,7 +20,7 @@ class RCONInterface():
                     return True, response
 
         except valve.rcon.RCONCommunicationError as socket_err:
-            print(f"Hit an error when trying to issue: '{command}' to '{self.address}:{self.port}'")
+            print(f"Hit a communication error when trying to issue: '{command}' to '{self.address}:{self.port}'")
             print(socket_err)
 
             return False, socket_err
@@ -30,3 +30,8 @@ class RCONInterface():
             print(timeout_err)
 
             return False, timeout_err
+
+        except Exception as generic_err:
+            print(f"Hit an unknown error when trying to issue: '{command}' to '{self.address}:{self.port}'")
+
+            return False, generic_err

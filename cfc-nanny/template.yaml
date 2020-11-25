@@ -18,6 +18,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'NannyAuthJsonEnv'
 
+  CFC3RconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFC3RconPassword'
+
   CFCTestRconPassword:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCTestRconPassword'
@@ -26,6 +30,14 @@ Globals:
   Function:
     Timeout: 60
     Runtime: python3.8
+# Api:
+#   CacheClusterEnabled: true
+#   CacheClustersize: "0.5"
+#   MethodSettings:
+#     - ResourcePath: /*-ping
+#       CachingEnabled: true
+#       CacheDataEncrypted: false
+#       HttpMethod: GET
 
 _shared:
   restart: &restart_defaults
@@ -48,6 +60,19 @@ Resources:
                 - Authorization
             AuthorizerPayloadFormatVersion: 2.0
             EnableSimpleResponses: true
+      Domain:
+        DomainName: nanny.cfcservers.org
+        CertificateArn: arn:aws:acm:us-east-1:215025579220:certificate/59d4ce5c-9509-4589-be7c-f8dadf00f12d
+
+      DisableExecuteApiEndpoint: true
+
+      #CorsConfiguration:
+      #  AllowOrigins:
+      #    - 172.245.14.234
+      #    - 23.227.174.90
+      #  AllowMethods:
+      #    - GET
+      #    - POST
 
   # Auth
   CFCNannyAuthFunction:
@@ -102,7 +127,7 @@ Resources:
           - sg-0e1b04d82e5e43b86
         SubnetIds:
           - subnet-0591f35ebb61a5df9
-      CodeUri: src/cfctest_rcon/
+      CodeUri: src/gmod_rcon/
       Handler: app.lambda_handler
 
       Layers:
@@ -119,6 +144,88 @@ Resources:
             ApiId: !Ref NannyApi
             Path: /cfctest-rcon
             Method: post
+
+  CFC3RconFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e1b04d82e5e43b86
+        SubnetIds:
+          - subnet-0591f35ebb61a5df9
+      CodeUri: src/gmod_rcon/
+      Handler: app.lambda_handler
+
+      Layers:
+        - !Ref RconDepLayer
+      Environment:
+        Variables:
+          RCON_PORT: "27015"
+          RCON_IP: "172.245.14.234"
+          RCON_PASSWORD: !Ref CFC3RconPassword
+      Events:
+        CFC3RconCommand:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NannyApi
+            Path: /cfc3-rcon
+            Method: post
+
+  CFCTestPingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e1b04d82e5e43b86
+        SubnetIds:
+          - subnet-0591f35ebb61a5df9
+      CodeUri: src/gmod_ping/
+      Handler: app.lambda_handler
+
+      Layers:
+        - !Ref RconDepLayer
+      Environment:
+        Variables:
+          RCON_PORT: "27016"
+          RCON_IP: "172.245.14.234"
+          RCON_PASSWORD: !Ref CFCTestRconPassword
+      Events:
+        CFCTestPingCommand:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NannyApi
+            Path: /cfctest-ping
+            Method: get
+            Auth:
+              Authorizer: NONE
+
+  CFC3PingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e1b04d82e5e43b86
+        SubnetIds:
+          - subnet-0591f35ebb61a5df9
+      CodeUri: src/gmod_ping/
+      Handler: app.lambda_handler
+
+      Layers:
+        - !Ref RconDepLayer
+      Environment:
+        Variables:
+          RCON_PORT: "27015"
+          RCON_IP: "172.245.14.234"
+          RCON_PASSWORD: !Ref CFC3RconPassword
+      Events:
+        CFC3PingCommand:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref NannyApi
+            Path: /cfc3-ping
+            Method: get
+            Auth:
+              Authorizer: NONE
 
   # Layers
   RestartDepLayer:
