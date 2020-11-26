@@ -1,6 +1,6 @@
 import time
 
-class ResponseCache():
+class ResponseCache:
     def __init__(self, shelf_life=5):
         self.shelf_life = shelf_life
         self.cache = {}

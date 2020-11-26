@@ -3,7 +3,7 @@ from response_caching import ResponseCache
 from lambda_responses import lambda_response
 import json
 
-STATUS_CACHE = ResponseCache(shelf_life=5)
+status_cache = ResponseCache(shelf_life=5)
 
 up = lambda_response(response={"status": "server-is-up"}, flat_response=True)
 down = lambda_response(response={"status": "server-is-down"}, flat_response=True)
@@ -13,7 +13,7 @@ def lambda_handler(event, context):
 
     destination = f"{interface.address}:{interface.port}"
 
-    cached_response = STATUS_CACHE.get(destination)
+    cached_response = status_cache.get(destination)
     if cached_response:
         return cached_response
 
@@ -21,6 +21,6 @@ def lambda_handler(event, context):
 
     response = up if success else down
 
-    STATUS_CACHE.set(destination, response)
+    status_cache.set(destination, response)
 
     return response
