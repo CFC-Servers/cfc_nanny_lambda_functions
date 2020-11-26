@@ -1,25 +1,44 @@
 from json import dumps
 
-def lambda_response(status=200, response=None, flat_response=False, errors=None):
-    body = {}
+class Response:
+    def __new__(self, content=None, errors=None, status=200, cache_lifetime=None):
+        self.status = status
+        self.content = content
+        self.errors = errors
+        self.headers = { "Cache-Control": "no-store" }
 
-    if response:
-        # Lets callers put their dictionary values directly on the body instead of nested under "response"
-        if flat_response and type(response) is dict:
-            for key, value in response.items():
-                body[key] = value
-        else:
-            body["response"] = response
+        if cache_lifetime:
+            self.headers["Cache-Control"] = (
+                "public,"
+                "max-age 0,"
+                "s-maxage {},".format(cache_lifetime)
+                "proxy-revalidate"
+            )
 
-    if errors:
-        if type(errors) is not list:
-            errors = [errors]
+        return self.build()
 
-        body["errors"] = errors
+    def build(self):
+        body = {}
+        content = self.content
+        errors = self.errors
 
-    body = dumps(body)
+        if content:
+            if type(content) is dict:
+                for key, value in content.items():
+                    body[key] = value
+            else:
+                body["response"] = content
 
-    return {
-        "statusCode": status,
-        "body": body
-    }
+        if errors:
+            if type(errors) is not list:
+                errors = [errors]
+
+            body["errors"] = errors
+
+        body = dumps(body)
+
+        return {
+            "statusCode": self.status,
+            "body": body,
+            "headers": self.headers
+        }

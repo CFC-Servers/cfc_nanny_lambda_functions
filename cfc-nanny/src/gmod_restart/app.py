@@ -1,7 +1,7 @@
 import os
 from sshrunner import run_command
 from restart_utils import clean_output
-from lambda_responses import lambda_response
+from lambda_responses import Response
 import re
 import json
 
@@ -31,7 +31,4 @@ def lambda_handler(event, context):
 
     output.stdout = clean_output(output.stdout)
 
-    return lambda_response(
-        response={"stdout": output.stdout},
-        flat_response=True
-    )
+    return Response({"stdout": output.stdout})
