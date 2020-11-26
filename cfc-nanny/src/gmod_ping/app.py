@@ -1,4 +1,4 @@
-from cfcrconinterface import RCONInterface
+from cfc_rcon_interface import RCONInterface
 from response_caching import ResponseCache
 from lambda_responses import lambda_response
 import json
