@@ -54,6 +54,17 @@ _shared:
       - !Ref RconDepLayer
       - !Ref LambdaResponseLayer
 
+  rcon_variables:
+    cfc3: &cfc3_rcon
+      RCON_PORT: "27015"
+      RCON_IP: "172.245.14.234"
+      RCON_PASSWORD: !Ref CFC3RconPassword
+
+    cfctest: &cfctest_rcon
+      RCON_PORT: "27016"
+      RCON_IP: "172.245.14.234"
+      RCON_PASSWORD: !Ref CFCTestRconPassword
+
   ping: &gmod_ping_defaults
     <<: *vpc_execution
     CodeUri: src/gmod_ping/
@@ -62,6 +73,20 @@ _shared:
       - !Ref RconDepLayer
       - !Ref LambdaResponseLayer
       - !Ref ResponseCachingLayer
+
+  request: &request_properties
+    ApiId: !Ref NannyApi
+    Method: POST
+    ThrottlingBurstLimit: 2.5
+    ThrottlingRateLimit: 0.5
+
+  public_request: &public_request_properties
+    <<: *request_properties
+    Method: GET
+    ThrottlingBurstLimit: 5
+    ThrottlingRateLimit: 1
+    Auth:
+      Authorizer: NONE
 
 Resources:
   NannyApi:
@@ -77,7 +102,6 @@ Resources:
             Identity:
               Headers:
                 - Authorization
-
       Domain:
         DomainName: nanny.cfcservers.org
         CertificateArn: arn:aws:acm:us-east-1:215025579220:certificate/59d4ce5c-9509-4589-be7c-f8dadf00f12d
@@ -108,9 +132,8 @@ Resources:
         CFCTestRestart:
           Type: HttpApi
           Properties:
-            ApiId: !Ref NannyApi
+            <<: *request_properties
             Path: /cfctest-restart
-            Method: post
 
   CFC3RestartFunction:
     Type: AWS::Serverless::Function
@@ -125,9 +148,8 @@ Resources:
         CFC3Restart:
           Type: HttpApi
           Properties:
-            ApiId: !Ref NannyApi
+            <<: *request_properties
             Path: /cfc3-restart
-            Method: post
 
   CFCTestRconFunction:
     Type: AWS::Serverless::Function
@@ -135,16 +157,13 @@ Resources:
       <<: *gmod_rcon_defaults
       Environment:
         Variables:
-          RCON_PORT: "27016"
-          RCON_IP: "172.245.14.234"
-          RCON_PASSWORD: !Ref CFCTestRconPassword
+          <<: *cfctest_rcon
       Events:
         CFCTestRconCommand:
           Type: HttpApi
           Properties:
-            ApiId: !Ref NannyApi
+            <<: *request_properties
             Path: /cfctest-rcon
-            Method: post
 
   CFC3RconFunction:
     Type: AWS::Serverless::Function
@@ -152,16 +171,13 @@ Resources:
       <<: *gmod_rcon_defaults
       Environment:
         Variables:
-          RCON_PORT: "27015"
-          RCON_IP: "172.245.14.234"
-          RCON_PASSWORD: !Ref CFC3RconPassword
+          <<: *cfc3_rcon
       Events:
         CFC3RconCommand:
           Type: HttpApi
           Properties:
-            ApiId: !Ref NannyApi
+            <<: *request_properties
             Path: /cfc3-rcon
-            Method: post
 
   CFCTestPingFunction:
     Type: AWS::Serverless::Function
@@ -169,18 +185,13 @@ Resources:
       <<: *gmod_ping_defaults
       Environment:
         Variables:
-          RCON_PORT: "27016"
-          RCON_IP: "172.245.14.234"
-          RCON_PASSWORD: !Ref CFCTestRconPassword
+          <<: *cfctest_rcon
       Events:
         CFCTestPingCommand:
           Type: HttpApi
           Properties:
-            ApiId: !Ref NannyApi
+            <<: *public_request_properties
             Path: /cfctest-ping
-            Method: get
-            Auth:
-              Authorizer: NONE
 
   CFC3PingFunction:
     Type: AWS::Serverless::Function
@@ -188,64 +199,56 @@ Resources:
       <<: *gmod_ping_defaults
       Environment:
         Variables:
-          RCON_PORT: "27015"
-          RCON_IP: "172.245.14.234"
-          RCON_PASSWORD: !Ref CFC3RconPassword
+          <<: *cfc3_rcon
       Events:
         CFC3PingCommand:
           Type: HttpApi
           Properties:
-            ApiId: !Ref NannyApi
+            <<: *public_request_properties
             Path: /cfc3-ping
-            Method: get
-            Auth:
-              Authorizer: NONE
 
   # Layers
+  LayerMetaData: &layer_meta
+    CompatibleRuntimes:
+      - python3.8
+    RetentionPolicy: Retain
+
   RestartDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
+      <<: *layer_meta
       LayerName: nanny-restart-dependencies
       Description: Dependencies for cfc nanny restart
       ContentUri: layers/restart_dependencies
-      CompatibleRuntimes:
-        - python3.8
-      RetentionPolicy: Retain
     Metadata:
       BuildMethod: makefile
 
   RconDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
+      <<: *layer_meta
       LayerName: nanny-rcon-dependencies
       Description: Dependencies for cfc nanny rcon
       ContentUri: layers/rcon_dependencies
-      CompatibleRuntimes:
-        - python3.8
-      RetentionPolicy: Retain
     Metadata:
       BuildMethod: makefile
 
   LambdaResponseLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
+      <<: *layer_meta
       LayerName: nanny-lambda-response-generator
       Description: Generates responses for lambda functions
       ContentUri: layers/lambda_responses
-      CompatibleRuntimes:
-        - python3.8
-      RetentionPolicy: Retain
     Metadata:
       BuildMethod: makefile
 
   ResponseCachingLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
+      <<: *layer_meta
       LayerName: nanny-lambda-response-caching
       Description: Provides an interface for easily caching responses to lambda functions
       ContentUri: layers/response_caching
-      CompatibleRuntimes:
-        - python3.8
-      RetentionPolicy: Retain
     Metadata:
       BuildMethod: makefile
