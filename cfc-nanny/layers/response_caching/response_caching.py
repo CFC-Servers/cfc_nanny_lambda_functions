@@ -5,7 +5,7 @@ class ResponseCache():
         self.shelf_life = shelf_life
         self.cache = {}
 
-    def set(key, value):
+    def set(self, key, value):
         print(f"Setting '{key}' to '{value}' in ResponseCache")
         now = time.time()
 
@@ -16,7 +16,7 @@ class ResponseCache():
 
         self.cache[key] = struct
 
-    def get(key):
+    def get(self, key):
         print(f"Getting '{key}' from ResponseCache")
         cached = self.cache.get(key)
 
