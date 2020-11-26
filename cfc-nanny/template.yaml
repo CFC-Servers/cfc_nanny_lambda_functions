@@ -31,7 +31,7 @@ Globals:
     Timeout: 60
     Runtime: python3.8
 
-_shared:
+Metadata:
   restart: &gmod_restart_defaults
     CodeUri: src/gmod_restart/
     Handler: app.lambda_handler
@@ -45,6 +45,11 @@ _shared:
         - sg-0e1b04d82e5e43b86
       SubnetIds:
         - subnet-0591f35ebb61a5df9
+
+  layer_metadata: &layer_meta
+    CompatibleRuntimes:
+      - python3.8
+    RetentionPolicy: Retain
 
   rcon: &gmod_rcon_defaults
     <<: *vpc_execution
@@ -77,14 +82,16 @@ _shared:
   request: &request_properties
     ApiId: !Ref NannyApi
     Method: POST
-    ThrottlingBurstLimit: 2.5
-    ThrottlingRateLimit: 0.5
+    RouteSettings:
+      ThrottlingBurstLimit: 2
+      ThrottlingRateLimit: 1
 
   public_request: &public_request_properties
     <<: *request_properties
     Method: GET
-    ThrottlingBurstLimit: 5
-    ThrottlingRateLimit: 1
+    RouteSettings:
+      ThrottlingBurstLimit: 10
+      ThrottlingRateLimit: 5
     Auth:
       Authorizer: NONE
 
@@ -208,11 +215,6 @@ Resources:
             Path: /cfc3-ping
 
   # Layers
-  LayerMetaData: &layer_meta
-    CompatibleRuntimes:
-      - python3.8
-    RetentionPolicy: Retain
-
   RestartDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:

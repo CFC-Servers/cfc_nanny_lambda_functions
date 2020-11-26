@@ -1,22 +1,6 @@
 from json import dumps
 
-class Response:
-    def __new__(self, content=None, errors=None, status=200, cache_lifetime=None):
-        self.status = status
-        self.content = content
-        self.errors = errors
-        self.headers = { "Cache-Control": "no-store" }
-
-        if cache_lifetime:
-            self.headers["Cache-Control"] = (
-                "public,"
-                "max-age 0,"
-                "s-maxage {},".format(cache_lifetime)
-                "proxy-revalidate"
-            )
-
-        return self.build()
-
+class ResponseBuilder:
     def build(self):
         body = {}
         content = self.content
@@ -42,3 +26,22 @@ class Response:
             "body": body,
             "headers": self.headers
         }
+
+class Response:
+    def __new__(cls, content=None, errors=None, status=200, cache_lifetime=None):
+        response = ResponseBuilder()
+        response.status = status
+        response.content = content
+        response.errors = errors
+        response.headers = { "Cache-Control": "no-store" }
+
+        if cache_lifetime:
+            response.headers["Cache-Control"] = (
+                "public,"
+                "max-age 0,"
+               f"s-maxage {cache_lifetime},"
+                "proxy-revalidate"
+            )
+
+        return response.build()
+
