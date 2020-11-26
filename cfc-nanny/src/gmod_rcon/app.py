@@ -1,5 +1,5 @@
 from cfc_rcon_interface import RCONInterface
-from lambda_responses import lambda_response
+from lambda_responses import Response
 from json import loads
 
 def lambda_handler(event, context):
@@ -8,16 +8,16 @@ def lambda_handler(event, context):
     body = event.get("body", None)
 
     if body is None:
-        return lambda_response(status=400, errors="Received empty body")
+        return Response(status=400, errors="Received empty body")
 
     body = loads(body)
     command = body.get("command", None)
 
     if command is None:
-        return lambda_response(status=400, errors="Did not receive a command")
+        return Response(status=400, errors="Did not receive a command")
 
     success, result = interface.issue_command(command)
     if success:
-        return lambda_response(response=result)
+        return Response(content=result)
 
-    return lambda_response(status=500, errors=result)
+    return Response(status=500, errors=result)
