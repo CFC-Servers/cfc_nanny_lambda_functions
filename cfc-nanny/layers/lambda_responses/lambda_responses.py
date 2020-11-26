@@ -1,6 +1,6 @@
 from json import dumps
 
-def lambda_response(self, status=200, response=None, flat_response=False, errors=None):
+def lambda_response(status=200, response=None, flat_response=False, errors=None):
     body = {}
 
     if response:

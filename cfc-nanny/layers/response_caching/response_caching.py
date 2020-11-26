@@ -6,6 +6,7 @@ class ResponseCache():
         self.cache = {}
 
     def set(key, value):
+        print(f"Setting '{key}' to '{value}' in ResponseCache")
         now = time.time()
 
         struct = {
@@ -16,9 +17,11 @@ class ResponseCache():
         self.cache[key] = struct
 
     def get(key):
+        print(f"Getting '{key}' from ResponseCache")
         cached = self.cache.get(key)
 
         if cached is None:
+            print(f"'{key}' didn't exist in ResponseCache")
             return None
 
         now = time.time()
@@ -26,6 +29,11 @@ class ResponseCache():
         is_stale = now > expiration
 
         if is_stale:
+            print(f"Expiration on '{key}' in ResponseCache")
             return None
 
-        return cached["value"]
+        value = cached["value"]
+
+        print(f"Returning cached value for '{key}': '{value}'")
+
+        return value
