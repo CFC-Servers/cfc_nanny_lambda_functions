@@ -30,14 +30,6 @@ Globals:
   Function:
     Timeout: 60
     Runtime: python3.8
-# Api:
-#   CacheClusterEnabled: true
-#   CacheClustersize: "0.5"
-#   MethodSettings:
-#     - ResourcePath: /*-ping
-#       CachingEnabled: true
-#       CacheDataEncrypted: false
-#       HttpMethod: GET
 
 _shared:
   restart: &restart_defaults
@@ -65,14 +57,6 @@ Resources:
         CertificateArn: arn:aws:acm:us-east-1:215025579220:certificate/59d4ce5c-9509-4589-be7c-f8dadf00f12d
 
       DisableExecuteApiEndpoint: true
-
-      #CorsConfiguration:
-      #  AllowOrigins:
-      #    - 172.245.14.234
-      #    - 23.227.174.90
-      #  AllowMethods:
-      #    - GET
-      #    - POST
 
   # Auth
   CFCNannyAuthFunction:
@@ -132,6 +116,7 @@ Resources:
 
       Layers:
         - !Ref RconDepLayer
+        - !Ref LambdaResponseLayer
       Environment:
         Variables:
           RCON_PORT: "27016"
@@ -158,6 +143,7 @@ Resources:
 
       Layers:
         - !Ref RconDepLayer
+        - !Ref LambdaResponseLayer
       Environment:
         Variables:
           RCON_PORT: "27015"
@@ -184,6 +170,8 @@ Resources:
 
       Layers:
         - !Ref RconDepLayer
+        - !Ref LambdaResponseLayer
+        - !Ref ResponseCachingLayer
       Environment:
         Variables:
           RCON_PORT: "27016"
@@ -212,6 +200,8 @@ Resources:
 
       Layers:
         - !Ref RconDepLayer
+        - !Ref LambdaResponseLayer
+        - !Ref ResponseCachingLayer
       Environment:
         Variables:
           RCON_PORT: "27015"
@@ -246,6 +236,30 @@ Resources:
       LayerName: nanny-rcon-dependencies
       Description: Dependencies for cfc nanny rcon
       ContentUri: layers/rcon_dependencies
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
+  LambdaResponseLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: nanny-lambda-response-generator
+      Description: Generates responses for lambda functions
+      ContentUri: layers/lambda_responses
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: makefile
+
+  ResponseCachingLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: nanny-lambda-response-caching
+      Description: Provides an interface for easily caching responses to lambda functions
+      ContentUri: layers/response_caching
       CompatibleRuntimes:
         - python3.8
       RetentionPolicy: Retain

@@ -1,1 +1,1 @@
-from .cfcrconinterface import *
+from .cfc_rcon_interface import *

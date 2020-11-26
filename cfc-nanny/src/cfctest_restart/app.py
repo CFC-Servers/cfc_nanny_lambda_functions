@@ -5,8 +5,8 @@ from lambda_responses import lambda_response
 import re
 import json
 
-name = os.getenv["SERVER_NAME"]
-directory = os.environ["SERVER_DIRECTORY"]
+name = "cfctest"
+directory = "/var/steam/gmod/cfc-test/"
 timeout_seconds = 30
 
 name = f"[{name[0]}]" + name[1:] # prevents command from killing itsself
