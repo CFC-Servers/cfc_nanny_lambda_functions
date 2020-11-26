@@ -32,11 +32,36 @@ Globals:
     Runtime: python3.8
 
 _shared:
-  restart: &restart_defaults
+  restart: &gmod_restart_defaults
     CodeUri: src/gmod_restart/
     Handler: app.lambda_handler
     Layers:
       - !Ref RestartDepLayer
+      - !Ref LambdaResponseLayer
+
+  vpc_execution: &vpc_execution
+    VpcConfig:
+      SecurityGroupIds:
+        - sg-0e1b04d82e5e43b86
+      SubnetIds:
+        - subnet-0591f35ebb61a5df9
+
+  rcon: &gmod_rcon_defaults
+    <<: *vpc_execution
+    CodeUri: src/gmod_rcon/
+    Handler: app.lambda_handler
+    Layers:
+      - !Ref RconDepLayer
+      - !Ref LambdaResponseLayer
+
+  ping: &gmod_ping_defaults
+    <<: *vpc_execution
+    CodeUri: src/gmod_ping/
+    Handler: app.lambda_handler
+    Layers:
+      - !Ref RconDepLayer
+      - !Ref LambdaResponseLayer
+      - !Ref ResponseCachingLayer
 
 Resources:
   NannyApi:
@@ -47,11 +72,12 @@ Resources:
         Authorizers:
           NannyRequestAuthorizer:
             FunctionArn: !GetAtt CFCNannyAuthFunction.Arn
+            AuthorizerPayloadFormatVersion: 2.0
+            EnableSimpleResponses: true
             Identity:
               Headers:
                 - Authorization
-            AuthorizerPayloadFormatVersion: 2.0
-            EnableSimpleResponses: true
+
       Domain:
         DomainName: nanny.cfcservers.org
         CertificateArn: arn:aws:acm:us-east-1:215025579220:certificate/59d4ce5c-9509-4589-be7c-f8dadf00f12d
@@ -72,7 +98,7 @@ Resources:
   CFCTestRestartFunction:
     Type: AWS::Serverless::Function
     Properties:
-      <<: *restart_defaults
+      <<: *gmod_restart_defaults
       Environment:
         Variables:
           private_key: !Ref NannySSHPrivateKey
@@ -89,7 +115,7 @@ Resources:
   CFC3RestartFunction:
     Type: AWS::Serverless::Function
     Properties:
-      <<: *restart_defaults
+      <<: *gmod_restart_defaults
       Environment:
         Variables:
           private_key: !Ref NannySSHPrivateKey
@@ -106,17 +132,7 @@ Resources:
   CFCTestRconFunction:
     Type: AWS::Serverless::Function
     Properties:
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-0e1b04d82e5e43b86
-        SubnetIds:
-          - subnet-0591f35ebb61a5df9
-      CodeUri: src/gmod_rcon/
-      Handler: app.lambda_handler
-
-      Layers:
-        - !Ref RconDepLayer
-        - !Ref LambdaResponseLayer
+      <<: *gmod_rcon_defaults
       Environment:
         Variables:
           RCON_PORT: "27016"
@@ -133,17 +149,7 @@ Resources:
   CFC3RconFunction:
     Type: AWS::Serverless::Function
     Properties:
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-0e1b04d82e5e43b86
-        SubnetIds:
-          - subnet-0591f35ebb61a5df9
-      CodeUri: src/gmod_rcon/
-      Handler: app.lambda_handler
-
-      Layers:
-        - !Ref RconDepLayer
-        - !Ref LambdaResponseLayer
+      <<: *gmod_rcon_defaults
       Environment:
         Variables:
           RCON_PORT: "27015"
@@ -160,18 +166,7 @@ Resources:
   CFCTestPingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-0e1b04d82e5e43b86
-        SubnetIds:
-          - subnet-0591f35ebb61a5df9
-      CodeUri: src/gmod_ping/
-      Handler: app.lambda_handler
-
-      Layers:
-        - !Ref RconDepLayer
-        - !Ref LambdaResponseLayer
-        - !Ref ResponseCachingLayer
+      <<: *gmod_ping_defaults
       Environment:
         Variables:
           RCON_PORT: "27016"
@@ -190,18 +185,7 @@ Resources:
   CFC3PingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      VpcConfig:
-        SecurityGroupIds:
-          - sg-0e1b04d82e5e43b86
-        SubnetIds:
-          - subnet-0591f35ebb61a5df9
-      CodeUri: src/gmod_ping/
-      Handler: app.lambda_handler
-
-      Layers:
-        - !Ref RconDepLayer
-        - !Ref LambdaResponseLayer
-        - !Ref ResponseCachingLayer
+      <<: *gmod_ping_defaults
       Environment:
         Variables:
           RCON_PORT: "27015"
