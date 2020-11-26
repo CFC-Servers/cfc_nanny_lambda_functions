@@ -3,8 +3,8 @@ from response_caching import ResponseCache
 from lambda_responses import Response
 
 status_cache = ResponseCache(shelf_life=5)
-up = Response({"status": "server-is-up"})
-down = Response({"status": "server-is-down"})
+up = Response({"status": "server-is-up"}, cache_lifetime=5)
+down = Response({"status": "server-is-down"}, cache_lifetime=5)
 
 def lambda_handler(event, context):
     interface = RCONInterface()
