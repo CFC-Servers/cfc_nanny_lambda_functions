@@ -4,8 +4,8 @@ from restart_utils import clean_output
 import re
 import json
 
-name = "cfctest"
-directory = "/var/steam/gmod/cfc-test/"
+name = os.getenv["SERVER_NAME"]
+directory = os.environ["SERVER_DIRECTORY"]
 timeout_seconds = 30
 
 name = f"[{name[0]}]" + name[1:] # prevents command from killing itsself

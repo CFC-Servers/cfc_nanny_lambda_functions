@@ -23,6 +23,13 @@ Globals:
     Timeout: 60
     Runtime: python3.8
 
+_shared:
+  restart: &restart_defaults
+    CodeUri: src/gmod_restart/
+    Handler: app.lambda_handler
+    Layers:
+      - !Ref RestartDepLayer
+
 Resources:
   NannyApi:
     Type: AWS::Serverless::HttpApi
@@ -47,18 +54,17 @@ Resources:
       Environment:
         Variables:
           JSON_ENV: !Ref NannyAuthJsonEnv
+
   # Functions
   CFCTestRestartFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/cfctest_restart/
-      Handler: app.lambda_handler
-      Runtime: python3.8
-      Layers:
-        - !Ref RestartDepLayer
+      <<: *restart_defaults
       Environment:
         Variables:
           private_key: !Ref NannySSHPrivateKey
+          SERVER_DIR: "/var/steam/gmod/cfc-test/"
+          SEVER_NAME: "cfctest"
       Events:
         CFCTestRestart:
           Type: HttpApi
@@ -71,14 +77,12 @@ Resources:
   CFC3RestartFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/cfc3_restart/
-      Handler: app.lambda_handler
-
-      Layers:
-        - !Ref RestartDepLayer
+      <<: *restart_defaults
       Environment:
         Variables:
           private_key: !Ref NannySSHPrivateKey
+          SERVER_DIR: "/var/steam/gmod/cfc3/"
+          SERVER_NAME: "cfc3"
       Events:
         CFC3Restart:
           Type: HttpApi
