@@ -133,8 +133,8 @@ Resources:
       Environment:
         Variables:
           private_key: !Ref NannySSHPrivateKey
-          SERVER_DIR: "/var/steam/gmod/cfc-test/"
-          SEVER_NAME: "cfctest"
+          SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
+          SERVER_NAME: "cfctest"
       Events:
         CFCTestRestart:
           Type: HttpApi
@@ -149,7 +149,7 @@ Resources:
       Environment:
         Variables:
           private_key: !Ref NannySSHPrivateKey
-          SERVER_DIR: "/var/steam/gmod/cfc3/"
+          SERVER_DIRECTORY: "/var/steam/gmod/cfc3/"
           SERVER_NAME: "cfc3"
       Events:
         CFC3Restart:
