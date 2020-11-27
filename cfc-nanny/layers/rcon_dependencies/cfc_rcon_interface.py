@@ -1,7 +1,7 @@
 import os
 import valve.rcon
 
-class RCONInterface():
+class RCONInterface:
     def __init__(self):
         self.set_rcon_credentials()
 
