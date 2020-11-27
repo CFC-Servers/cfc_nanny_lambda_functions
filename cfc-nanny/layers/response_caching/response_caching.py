@@ -5,13 +5,14 @@ class ResponseCache:
         self.shelf_life = shelf_life
         self.cache = {}
 
-    def set(self, key, value):
+    def set(self, key, value, shelf_life=None):
         print(f"Setting '{key}' to '{value}' in ResponseCache")
+        lifetime = shelf_life or self.shelf_life
         now = time.time()
 
         struct = {
             "value": value,
-            "expiration": now + self.shelf_life
+            "expiration": now + lifetime
         }
 
         self.cache[key] = struct

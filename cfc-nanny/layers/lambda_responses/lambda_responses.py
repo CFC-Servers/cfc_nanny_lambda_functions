@@ -31,6 +31,9 @@ class ResponseBuilder:
 
 class Response:
     def __new__(cls, content=None, errors=None, status=200, cache_lifetime=None):
+        if cache_lifetime and cache_lifetime <= 0:
+            cache_lifetime = None
+
         response = ResponseBuilder()
         response.status = status
         response.content = content

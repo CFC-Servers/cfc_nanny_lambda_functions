@@ -36,6 +36,49 @@ Globals:
 
 
 Metadata:
+  # Meta
+  layer_metadata: &layer_meta
+    CompatibleRuntimes:
+      - python3.8
+    RetentionPolicy: Retain
+
+  request_meta:
+    request: &request_properties
+      ApiId: !Ref NannyApi
+      Method: POST
+      RouteSettings:
+        ThrottlingBurstLimit: 2
+        ThrottlingRateLimit: 1
+
+    public_request: &public_request_properties
+      <<: *request_properties
+      Method: GET
+      RouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 5
+      Auth:
+        Authorizer: NONE
+
+  layers:
+    rcon: &rcon_function_layers
+      - !Ref RconDepLayer
+      - !Ref LambdaResponseLayer
+
+  function_meta:
+    vpc_execution: &vpc_execution
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e1b04d82e5e43b86
+        SubnetIds:
+          - subnet-0591f35ebb61a5df9
+
+    rcon: &rcon_function_defaults
+      <<: *vpc_execution
+      Handler: app.lambda_handler
+      Layers:
+        <<: *rcon_function_layers
+
+  # Function Defaults
   restart: &gmod_restart_defaults
     CodeUri: src/gmod_restart/
     Handler: app.lambda_handler
@@ -43,26 +86,29 @@ Metadata:
       - !Ref RestartDepLayer
       - !Ref LambdaResponseLayer
 
-  vpc_execution: &vpc_execution
-    VpcConfig:
-      SecurityGroupIds:
-        - sg-0e1b04d82e5e43b86
-      SubnetIds:
-        - subnet-0591f35ebb61a5df9
-
-  layer_metadata: &layer_meta
-    CompatibleRuntimes:
-      - python3.8
-    RetentionPolicy: Retain
-
   rcon: &gmod_rcon_defaults
-    <<: *vpc_execution
+    <<: *rcon_function_defaults
     CodeUri: src/gmod_rcon/
-    Handler: app.lambda_handler
-    Layers:
-      - !Ref RconDepLayer
-      - !Ref LambdaResponseLayer
 
+  update: &gmod_update_defaults
+    <<: *rcon_function_defaults
+    CodeUri: src/gmod_update/
+
+  status: &gmod_status_defaults
+    <<: *rcon_function_defaults
+    CodeUri: src/gmod_status/
+    Layers:
+      <<: *rcon_function_layers
+      - !Ref ResponseCachingLayer
+
+  ping: &gmod_ping_defaults
+    <<: *rcon_function_defaults
+    CodeUri: src/gmod_ping/
+    Layers:
+      <<: *rcon_function_layers
+      - !Ref ResponseCachingLayer
+
+  # Environment
   rcon_variables:
     cfc3: &cfc3_rcon_env
       RCON_PORT: "27015"
@@ -80,31 +126,6 @@ Metadata:
       SSH_PORT: 22
       SSH_USERNAME: steam
       SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
-
-  ping: &gmod_ping_defaults
-    <<: *vpc_execution
-    CodeUri: src/gmod_ping/
-    Handler: app.lambda_handler
-    Layers:
-      - !Ref RconDepLayer
-      - !Ref LambdaResponseLayer
-      - !Ref ResponseCachingLayer
-
-  request: &request_properties
-    ApiId: !Ref NannyApi
-    Method: POST
-    RouteSettings:
-      ThrottlingBurstLimit: 2
-      ThrottlingRateLimit: 1
-
-  public_request: &public_request_properties
-    <<: *request_properties
-    Method: GET
-    RouteSettings:
-      ThrottlingBurstLimit: 10
-      ThrottlingRateLimit: 5
-    Auth:
-      Authorizer: NONE
 
 Resources:
   NannyApi:
@@ -136,7 +157,9 @@ Resources:
         Variables:
           JSON_ENV: !Ref NannyAuthJsonEnv
 
-  # Functions
+  # Functions #
+
+  # Restart
   CFCTestRestartFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -169,6 +192,7 @@ Resources:
             <<: *request_properties
             Path: /cfc3-restart
 
+  # Rcon
   CFCTestRconFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -197,6 +221,7 @@ Resources:
             <<: *request_properties
             Path: /cfc3-rcon
 
+  # Ping
   CFCTestPingFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -224,15 +249,12 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfc3-ping
---
+
+  # Update
   CFC3UpdateFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gmod_update/
-      Handler: app.lambda_handler
-      Layers:
-        - !Ref RestartDepLayer
-        - !Ref LambdaResponseLayer
+      <<: *gmod_update_defaults
       Environment:
         Variables:
           <<: *buffalo_ssh_env
@@ -247,11 +269,7 @@ Resources:
   CFCTestUpdateFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gmod_update/
-      Handler: app.lambda_handler
-      Layers:
-        - !Ref RestartDepLayer
-        - !Ref LambdaResponseLayer
+      <<: *gmod_update_defaults
       Environment:
         Variables:
           <<: *buffalo_ssh_env
@@ -263,8 +281,67 @@ Resources:
             <<: *request_properties
             Path: /cfctest-update
 
+  # Full Status
+  CFC3StatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfc3_rcon_env
+          FULL_STATUS: True
+      Events:
+        CFC3Status:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfc3-full-status
 
-  # Layers
+  CFCTestStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfctest_rcon_env
+          FULL_STATUS: True
+      Events:
+        CFCTestStatus:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfctest-full-status
+
+  # Public Status
+  CFC3PublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfc3_rcon_env
+      Events:
+        CFC3Status:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfc3-status
+
+  CFCTestPublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfctest_rcon_env
+      Events:
+        CFCTestStatus:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfctest-status
+
+  # Layers #
   RestartDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
