@@ -9,8 +9,8 @@ CACHE_SECONDS = 30
 status_cache = ResponseCache(shelf_life=CACHE_SECONDS)
 status_parser = StatusParser()
 
-command = "status"
-command_with_pvp = f"{command};pvpstatusjson"
+status_command = "status"
+status_with_pvp = f"{status_command};pvpstatusjson"
 
 def scrub_status(status):
     for i, player in enumerate(status["players"]):
@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     cached_response = status_cache.get(fingerprint)
     if cached_response: return cached_response
 
-    command = command_with_pvp if include_pvp else command
+    command = status_with_pvp if include_pvp else status_command
 
     success, response = interface.issue_command(command)
     if success != True: return Response(status=500, errors=response)
