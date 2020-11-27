@@ -59,11 +59,6 @@ Metadata:
       Auth:
         Authorizer: NONE
 
-  layers:
-    rcon: &rcon_function_layers
-      - !Ref RconDepLayer
-      - !Ref LambdaResponseLayer
-
   function_meta:
     vpc_execution: &vpc_execution
       VpcConfig:
@@ -76,7 +71,9 @@ Metadata:
       <<: *vpc_execution
       Handler: app.lambda_handler
       Layers:
-        <<: *rcon_function_layers
+        - !Ref RconDepLayer
+        - !Ref LambdaResponseLayer
+        - !Ref ResponseCachingLayer
 
   # Function Defaults
   restart: &gmod_restart_defaults
@@ -97,16 +94,10 @@ Metadata:
   status: &gmod_status_defaults
     <<: *rcon_function_defaults
     CodeUri: src/gmod_status/
-    Layers:
-      <<: *rcon_function_layers
-      - !Ref ResponseCachingLayer
 
   ping: &gmod_ping_defaults
     <<: *rcon_function_defaults
     CodeUri: src/gmod_ping/
-    Layers:
-      <<: *rcon_function_layers
-      - !Ref ResponseCachingLayer
 
   # Environment
   rcon_variables:
