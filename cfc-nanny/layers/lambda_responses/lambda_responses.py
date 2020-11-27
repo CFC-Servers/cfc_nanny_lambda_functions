@@ -38,7 +38,10 @@ class Response:
         response.status = status
         response.content = content
         response.errors = errors
-        response.headers = { "Cache-Control": "no-store" }
+        response.headers = {
+            "Cache-Control": "no-store",
+            "Content-Type": "application/json"
+        }
 
         if cache_lifetime:
             response.headers["Cache-Control"] = (
