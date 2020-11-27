@@ -5,7 +5,7 @@ from lambda_responses import Response
 import re
 import json
 
-name = os.getenv["SERVER_NAME"]
+name = os.environ["SERVER_NAME"]
 directory = os.environ["SERVER_DIRECTORY"]
 timeout_seconds = 30
 
