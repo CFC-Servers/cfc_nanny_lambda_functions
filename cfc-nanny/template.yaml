@@ -60,12 +60,12 @@ Metadata:
       - !Ref LambdaResponseLayer
 
   rcon_variables:
-    cfc3: &cfc3_rcon
+    cfc3: &cfc3_rcon_env
       RCON_PORT: "27015"
       RCON_IP: "172.245.14.234"
       RCON_PASSWORD: !Ref CFC3RconPassword
 
-    cfctest: &cfctest_rcon
+    cfctest: &cfctest_rcon_env
       RCON_PORT: "27016"
       RCON_IP: "172.245.14.234"
       RCON_PASSWORD: !Ref CFCTestRconPassword
@@ -164,7 +164,7 @@ Resources:
       <<: *gmod_rcon_defaults
       Environment:
         Variables:
-          <<: *cfctest_rcon
+          <<: *cfctest_rcon_env
       Events:
         CFCTestRconCommand:
           Type: HttpApi
@@ -178,7 +178,7 @@ Resources:
       <<: *gmod_rcon_defaults
       Environment:
         Variables:
-          <<: *cfc3_rcon
+          <<: *cfc3_rcon_env
       Events:
         CFC3RconCommand:
           Type: HttpApi
@@ -192,7 +192,7 @@ Resources:
       <<: *gmod_ping_defaults
       Environment:
         Variables:
-          <<: *cfctest_rcon
+          <<: *cfctest_rcon_env
       Events:
         CFCTestPingCommand:
           Type: HttpApi
@@ -206,7 +206,7 @@ Resources:
       <<: *gmod_ping_defaults
       Environment:
         Variables:
-          <<: *cfc3_rcon
+          <<: *cfc3_rcon_env
       Events:
         CFC3PingCommand:
           Type: HttpApi
