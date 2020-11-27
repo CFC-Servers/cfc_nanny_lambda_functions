@@ -157,7 +157,7 @@ Resources:
       <<: *gmod_restart_defaults
       Environment:
         Variables:
-          SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
+          <<: *buffalo_ssh_env
           SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
           SERVER_NAME: "cfctest"
       Events:
@@ -173,6 +173,7 @@ Resources:
       <<: *gmod_restart_defaults
       Environment:
         Variables:
+          <<: *buffalo_ssh_env
           SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
           SERVER_DIRECTORY: "/var/steam/gmod/cfc3/"
           SERVER_NAME: "cfc3"
@@ -281,6 +282,7 @@ Resources:
         Variables:
           <<: *cfc3_rcon_env
           FULL_STATUS: True
+          INCLUDE_PVP: True
       Events:
         CFC3Status:
           Type: HttpApi
@@ -296,6 +298,7 @@ Resources:
         Variables:
           <<: *cfctest_rcon_env
           FULL_STATUS: True
+          INCLUDE_PVP: True
       Events:
         CFCTestStatus:
           Type: HttpApi
@@ -311,6 +314,7 @@ Resources:
       Environment:
         Variables:
           <<: *cfc3_rcon_env
+          INCLUDE_PVP: True
       Events:
         CFC3Status:
           Type: HttpApi
@@ -325,6 +329,7 @@ Resources:
       Environment:
         Variables:
           <<: *cfctest_rcon_env
+          INCLUDE_PVP: True
       Events:
         CFCTestStatus:
           Type: HttpApi
