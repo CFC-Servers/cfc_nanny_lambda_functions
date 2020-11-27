@@ -24,7 +24,7 @@ def lambda_handler(event, context):
         host="172.245.14.234",
         port=22,
         username="steam",
-        private_key="-----BEGIN RSA PRIVATE KEY-----\n" + os.environ["private_key"] + "\n-----END RSA PRIVATE KEY-----"
+        private_key="-----BEGIN RSA PRIVATE KEY-----\n" + os.environ["SSH_PRIVATE_KEY"] + "\n-----END RSA PRIVATE KEY-----"
     )
 
     print("Command outputed: \n", output.stdout)

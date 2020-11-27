@@ -2,9 +2,10 @@ from json import dumps
 
 class ResponseBuilder:
     def build(self):
-        body = {}
         content = self.content
         errors = self.errors
+
+        body = {} if (content or errors) else None
 
         if content:
             if type(content) is dict:
@@ -19,7 +20,8 @@ class ResponseBuilder:
 
             body["errors"] = errors
 
-        body = dumps(body)
+        if body:
+            body = dumps(body)
 
         return {
             "statusCode": self.status,

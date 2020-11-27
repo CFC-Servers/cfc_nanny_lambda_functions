@@ -1,10 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+
 Description: >
   CFC Nanny
 
   performs actions on cfc game servers
+
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Parameters:
@@ -26,10 +28,12 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCTestRconPassword'
 
+
 Globals:
   Function:
     Timeout: 60
     Runtime: python3.8
+
 
 Metadata:
   restart: &gmod_restart_defaults
@@ -69,6 +73,13 @@ Metadata:
       RCON_PORT: "27016"
       RCON_IP: "172.245.14.234"
       RCON_PASSWORD: !Ref CFCTestRconPassword
+
+  ssh_variables:
+    buffalo: &buffalo_ssh_env
+      SSH_HOST: 172.245.14.234
+      SSH_PORT: 22
+      SSH_USERNAME: steam
+      SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
 
   ping: &gmod_ping_defaults
     <<: *vpc_execution
@@ -132,7 +143,7 @@ Resources:
       <<: *gmod_restart_defaults
       Environment:
         Variables:
-          private_key: !Ref NannySSHPrivateKey
+          SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
           SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
           SERVER_NAME: "cfctest"
       Events:
@@ -148,7 +159,7 @@ Resources:
       <<: *gmod_restart_defaults
       Environment:
         Variables:
-          private_key: !Ref NannySSHPrivateKey
+          SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
           SERVER_DIRECTORY: "/var/steam/gmod/cfc3/"
           SERVER_NAME: "cfc3"
       Events:
@@ -213,6 +224,45 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfc3-ping
+--
+  CFC3UpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/gmod_update/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref RestartDepLayer
+        - !Ref LambdaResponseLayer
+      Environment:
+        Variables:
+          <<: *buffalo_ssh_env
+          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfc3/scripts/"
+      Events:
+        CFC3Update:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfc3-update
+
+  CFCTestUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/gmod_update/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref RestartDepLayer
+        - !Ref LambdaResponseLayer
+      Environment:
+        Variables:
+          <<: *buffalo_ssh_env
+          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfctest/scripts/"
+      Events:
+        CFCTestUpdate:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfctest-update
+
 
   # Layers
   RestartDepLayer:
