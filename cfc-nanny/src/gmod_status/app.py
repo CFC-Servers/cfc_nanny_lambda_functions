@@ -38,8 +38,13 @@ def lambda_handler(event, context):
     interface = RCONInterface()
     include_pvp = getenv("INCLUDE_PVP") == "True"
     full_status = getenv("FULL_STATUS") == "True"
+
+    print(f"INCLUDE_PVP: '{include_pvp}'")
+    print(f"FULL_STATUS: '{full_status}'")
+
     cache_lifetime = 0 if full_status else CACHE_SECONDS
     fingerprint = f"{interface.address}:{interface.port}:{full_status}"
+    print(f"Request fingerprint: {fingerprint}")
 
     cached_response = status_cache.get(fingerprint)
     if cached_response: return cached_response
