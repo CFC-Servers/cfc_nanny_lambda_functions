@@ -11,7 +11,7 @@ private_key = "-----BEGIN RSA PRIVATE KEY-----\n" + private_key + "\n-----END RS
 
 command = (
    f'cd {directory}; '
-    './update_gmod_resources'
+    './update-gmod-resources'
 )
 
 def lambda_handler(event, context):

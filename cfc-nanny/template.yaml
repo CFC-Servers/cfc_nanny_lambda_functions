@@ -89,6 +89,9 @@ Metadata:
 
   update: &gmod_update_defaults
     <<: *rcon_function_defaults
+    Layers:
+      - !Ref RestartDepLayer
+      - !Ref LambdaResponseLayer
     CodeUri: src/gmod_update/
 
   status: &gmod_status_defaults
@@ -250,7 +253,7 @@ Resources:
       Environment:
         Variables:
           <<: *buffalo_ssh_env
-          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfc3/scripts/"
+          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfc3/scripts/cfc_server_steam_scripts"
       Events:
         CFC3Update:
           Type: HttpApi
@@ -265,7 +268,7 @@ Resources:
       Environment:
         Variables:
           <<: *buffalo_ssh_env
-          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfctest/scripts/"
+          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfc-test/scripts/cfc_server_steam_scripts/"
       Events:
         CFCTestUpdate:
           Type: HttpApi
