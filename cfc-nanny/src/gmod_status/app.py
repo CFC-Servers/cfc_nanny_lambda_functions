@@ -18,15 +18,28 @@ def scrub_status(status):
 
     return status
 
+def is_valid_line(line):
+    if line is None:
+        return False
+
+    if len(line) == 0:
+        return False
+
+    if "rcon from" in line:
+        return False
+
+    return True
+
 def parse_response(response, full=False, pvp=False):
     pvp_status = None
-    parsed_status = None
+    response = response.split("\n")
+    response = [line for line in response if is_valid_line(line)]
 
     if pvp:
-        spl = response.split("\n")
-        pvp_status = loads(spl[-1])
-        response = "\n".join(spl[:-1])
+        pvp_status = response.pop()
+        pvp_status = loads(pvp_status)
 
+    response = "\n".join(response)
     parsed_status = status_parser.parse(response)
 
     if not full:
@@ -36,20 +49,16 @@ def parse_response(response, full=False, pvp=False):
 
 def lambda_handler(event, context):
     interface = RCONInterface()
-    include_pvp = getenv("INCLUDE_PVP") == "True"
-    full_status = getenv("FULL_STATUS") == "True"
 
-    print(f"INCLUDE_PVP: '{include_pvp}'")
-    print(f"FULL_STATUS: '{full_status}'")
+    include_pvp = getenv("INCLUDE_PVP") == "true"
+    full_status = getenv("FULL_STATUS") == "true"
+    command = status_with_pvp if include_pvp else status_command
 
     cache_lifetime = 0 if full_status else CACHE_SECONDS
     fingerprint = f"{interface.address}:{interface.port}:{full_status}"
-    print(f"Request fingerprint: {fingerprint}")
 
     cached_response = status_cache.get(fingerprint)
     if cached_response: return cached_response
-
-    command = status_with_pvp if include_pvp else status_command
 
     success, response = interface.issue_command(command)
     if success != True: return Response(status=500, errors=response)
