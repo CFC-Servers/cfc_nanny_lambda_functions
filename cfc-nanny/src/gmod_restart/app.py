@@ -10,13 +10,12 @@ name = os.environ["SERVER_NAME"]
 name = f"[{name[0]}]" + name[1:] # prevents command from killing itsself
 
 directory = os.environ["SERVER_DIRECTORY"]
-host = os.environ["SSH_HOST"],
-port = os.environ["SSH_PORT"],
-username = os.environ["SSH_USERNAME"],
-private_key = os.environ["SSH_PRIVATE_KEY"]
+host = os.environ["SSH_HOST"]
+port = os.environ["SSH_PORT"]
+username = os.environ["SSH_USERNAME"]
+private_key = os.environ["SSH_PRIVATE_KEY"].replace("\\n", "\n")
 
 pre_restart_command = "sv_cheats 1;net_fakeloss 10000"
-pre_restart_command = "status"
 
 command = (
     f'cd {directory}; '

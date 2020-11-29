@@ -85,6 +85,7 @@ Metadata:
 
   # Function Defaults
   restart: &gmod_restart_defaults
+    <<: *vpc_execution
     CodeUri: src/gmod_restart/
     Handler: app.lambda_handler
     Layers:
