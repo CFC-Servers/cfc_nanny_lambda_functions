@@ -25,7 +25,7 @@ def is_valid_line(line):
     if len(line) == 0:
         return False
 
-    if "rcon from" in line:
+    if line.startswith("rcon from"):
         return False
 
     return True

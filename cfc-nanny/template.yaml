@@ -10,10 +10,15 @@ Description: >
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Parameters:
-  NannySSHPrivateKey:
-    Description: Required. The ssh private key to use for ssh lambda actions
+  BuffaloSteamPrivateKey:
+    Description: Required. The ssh private key to use for ssh actions on the Buffalo server
     Type: AWS::SSM::Parameter::Value<String>
-    Default: 'NannySSHPrivateKey'
+    Default: 'BuffaloSteamPrivateKey'
+
+  LonestarSteamPrivateKey:
+    Description: Required. The ssh private key to use for ssh actions on the Lonestar server
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'LonestarSteamPrivateKey'
 
   NannyAuthJsonEnv:
     Description: Required. json data defining the auth environments
@@ -28,6 +33,9 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCTestRconPassword'
 
+  CFCRPRconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFCRPRconPassword'
 
 Globals:
   Function:
@@ -80,6 +88,7 @@ Metadata:
     CodeUri: src/gmod_restart/
     Handler: app.lambda_handler
     Layers:
+      - !Ref RconDepLayer
       - !Ref RestartDepLayer
       - !Ref LambdaResponseLayer
 
@@ -105,21 +114,32 @@ Metadata:
   # Environment
   rcon_variables:
     cfc3: &cfc3_rcon_env
-      RCON_PORT: "27015"
-      RCON_IP: "172.245.14.234"
+      RCON_IP: 172.245.14.234
+      RCON_PORT: 27015
       RCON_PASSWORD: !Ref CFC3RconPassword
 
     cfctest: &cfctest_rcon_env
-      RCON_PORT: "27016"
-      RCON_IP: "172.245.14.234"
+      RCON_IP: 172.245.14.234
+      RCON_PORT: 27016
       RCON_PASSWORD: !Ref CFCTestRconPassword
+
+    cfcrp: &cfcrp_rcon_env
+      RCON_IP: 23.227.174.90
+      RCON_PORT: 29015
+      RCON_PASSWORD: !Ref CFCRPRconPassword
 
   ssh_variables:
     buffalo: &buffalo_ssh_env
       SSH_HOST: 172.245.14.234
       SSH_PORT: 22
       SSH_USERNAME: steam
-      SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
+      SSH_PRIVATE_KEY: !Ref BuffaloSteamPrivateKey
+
+    lonestar: &lonestar_ssh_env
+      SSH_HOST: 23.227.174.90
+      SSH_PORT: 2327
+      SSH_USERNAME: steam
+      SSH_PRIVATE_KEY: !Ref LonestarSteamPrivateKey
 
 Resources:
   NannyApi:
@@ -160,6 +180,7 @@ Resources:
       <<: *gmod_restart_defaults
       Environment:
         Variables:
+          <<: *cfctest_rcon_env
           <<: *buffalo_ssh_env
           SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
           SERVER_NAME: "cfctest"
@@ -176,8 +197,8 @@ Resources:
       <<: *gmod_restart_defaults
       Environment:
         Variables:
+          <<: *cfc3_rcon_env
           <<: *buffalo_ssh_env
-          SSH_PRIVATE_KEY: !Ref NannySSHPrivateKey
           SERVER_DIRECTORY: "/var/steam/gmod/cfc3/"
           SERVER_NAME: "cfc3"
       Events:
@@ -186,6 +207,23 @@ Resources:
           Properties:
             <<: *request_properties
             Path: /cfc3-restart
+
+  CFCRPRestartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_restart_defaults
+      Environment:
+        Variables:
+          <<: *cfcrp_rcon_env
+          <<: *lonestar_ssh_env
+          SERVER_DIRECTORY: "/media/storage/steam/garrysmod/cfc-darkrp/"
+          SERVER_NAME: "cfcdarkrp"
+      Events:
+        CFCRPRestart:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcrp-restart
 
   # Rcon
   CFCTestRconFunction:
@@ -216,6 +254,20 @@ Resources:
             <<: *request_properties
             Path: /cfc3-rcon
 
+  CFCRPRconFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_rcon_defaults
+      Environment:
+        Variables:
+          <<: *cfcrp_rcon_env
+      Events:
+        CFCRPRconCommand:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcrp-rcon
+
   # Ping
   CFCTestPingFunction:
     Type: AWS::Serverless::Function
@@ -244,6 +296,20 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfc3-ping
+
+  CFCRPPingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_ping_defaults
+      Environment:
+        Variables:
+          <<: *cfcrp_rcon_env
+      Events:
+        CFCRPPingCommand:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcrp-ping
 
   # Update
   CFC3UpdateFunction:
@@ -275,6 +341,21 @@ Resources:
           Properties:
             <<: *request_properties
             Path: /cfctest-update
+
+  CFCRPUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_update_defaults
+      Environment:
+        Variables:
+          <<: *lonestar_ssh_env
+          SCRIPTS_DIRECTORY: "/media/storage/steam/garrysmod/cfc-darkrp/scripts/cfc_server_steam_scripts/"
+      Events:
+        CFCRPUpdate:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcrp-update
 
   # Full Status
   CFC3StatusFunction:
@@ -309,6 +390,21 @@ Resources:
             <<: *request_properties
             Path: /cfctest-full-status
 
+  CFCRPStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcrp_rcon_env
+          FULL_STATUS: true
+      Events:
+        CFCRPFullStatus:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcrp-full-status
+
   # Public Status
   CFC3PublicStatusFunction:
     Type: AWS::Serverless::Function
@@ -339,6 +435,20 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfctest-status
+
+  CFCRPPublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcrp_rcon_env
+      Events:
+        CFCRPStatus:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcrp-status
 
   # Layers #
   RestartDepLayer:

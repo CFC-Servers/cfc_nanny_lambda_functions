@@ -2,8 +2,9 @@ from cfc_rcon_interface import RCONInterface
 from lambda_responses import Response
 from json import loads
 
+interface = RCONInterface()
+
 def lambda_handler(event, context):
-    interface = RCONInterface()
 
     body = event.get("body", None)
 
