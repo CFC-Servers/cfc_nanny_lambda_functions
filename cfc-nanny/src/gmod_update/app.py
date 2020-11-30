@@ -1,13 +1,12 @@
 import os
 from sshrunner import run_command
 from lambda_responses import Response
-from threading import Thread
 
 directory = os.environ["SCRIPTS_DIRECTORY"]
 host = os.environ["SSH_HOST"]
 port = os.environ["SSH_PORT"]
 username = os.environ["SSH_USERNAME"]
-private_key = os.environ["SSH_PRIVATE_KEY"]
+private_key = os.environ["SSH_PRIVATE_KEY"].replace("\\n", "\n")
 
 command = (
    f'cd {directory}; '
@@ -27,6 +26,6 @@ def update_resources():
     print(output.stdout)
 
 def lambda_handler(event, context):
-    Thread(target=update_resources).start()
+    update_resources()
 
     return Response(status=204)
