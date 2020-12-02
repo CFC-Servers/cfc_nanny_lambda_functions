@@ -10,7 +10,7 @@ private_key = os.environ["SSH_PRIVATE_KEY"].replace("\\n", "\n")
 
 command = (
    f'cd {directory}; '
-    './update-gmod-resources'
+    'nohup ./update-gmod-resources &'
 )
 
 def update_resources():
