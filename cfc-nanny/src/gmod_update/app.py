@@ -10,7 +10,7 @@ private_key = os.environ["SSH_PRIVATE_KEY"].replace("\\n", "\n")
 
 command = (
    f'cd {directory}; '
-    'nohup ./update-gmod-resources &'
+    'nohup ./update-gmod-resources < /dev/null > /dev/null 2>&1 &'
 )
 
 def update_resources():
@@ -21,9 +21,6 @@ def update_resources():
         username=username,
         private_key=private_key
     )
-
-    print("Update command output:")
-    print(output.stdout)
 
 def lambda_handler(event, context):
     update_resources()
