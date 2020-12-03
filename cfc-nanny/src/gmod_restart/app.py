@@ -37,7 +37,7 @@ def lambda_handler(event, context):
     output = run_command(
         command=command,
         host=host,
-        port=port,
+        port=int(port),
         username=username,
         private_key=private_key
     )

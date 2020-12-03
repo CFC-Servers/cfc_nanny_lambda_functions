@@ -10,7 +10,7 @@ class SSHRunner:
 
     async def run_command(self, command):
         result = None
-        async with asyncssh.connect(self.host, username=self.username, client_keys=[self.private_key], known_hosts=None) as conn:
+        async with asyncssh.connect(self.host, port=self.port, username=self.username, client_keys=[self.private_key], known_hosts=None) as conn:
             result = await conn.run(command, check=False)
 
         return result
