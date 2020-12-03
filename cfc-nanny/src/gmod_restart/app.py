@@ -7,7 +7,7 @@ from lambda_responses import Response
 timeout_seconds = 30
 
 name = os.environ["SERVER_NAME"]
-name = f"[{name[0]}]" + name[1:] # prevents command from killing itsself
+re_name = f"[{name[0]}]" + name[1:] # prevents command from killing itsself
 
 directory = os.environ["SERVER_DIRECTORY"]
 host = os.environ["SSH_HOST"]
@@ -21,7 +21,7 @@ command = (
     f'cd {directory}; '
     f'timeout {timeout_seconds} ./{name} restart || '
     f'( printf "\n{name} could not restart within {timeout_seconds} killing process" && '
-    f'pkill -fe "{name}.cfg"; '
+    f'pkill -fe "{re_name}.cfg"; '
     f'./{name} start )'
 )
 
