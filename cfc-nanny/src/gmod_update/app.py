@@ -17,7 +17,7 @@ def update_resources():
     output = run_command(
         command=command,
         host=host,
-        port=port,
+        port=int(port),
         username=username,
         private_key=private_key
     )
