@@ -37,6 +37,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCRPRconPassword'
 
+  CFCMCCreativeRconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFCMCCreativeRconPassword'
+
 Globals:
   Function:
     Timeout: 60
@@ -75,15 +79,23 @@ Metadata:
         SubnetIds:
           - subnet-0591f35ebb61a5df9
 
-    rcon: &rcon_function_defaults
-      <<: *vpc_execution
-      Handler: app.lambda_handler
-      Layers:
-        - !Ref RconDepLayer
-        - !Ref LambdaResponseLayer
-        - !Ref ResponseCachingLayer
-
   # Function Defaults
+
+  rcon: &rcon_function_defaults
+    <<: *vpc_execution
+    Handler: app.lambda_handler
+    Layers:
+      - !Ref RconDepLayer
+      - !Ref LambdaResponseLayer
+      - !Ref ResponseCachingLayer
+
+  mcrcon: &mc_rcon_defaults
+    <<: *vpc_execution
+    CodeUri: src/mc_rcon/
+    Handler: app.lambda_handler
+    Layers:
+      - !Ref LambdaResponseLayer
+
   restart: &gmod_restart_defaults
     <<: *vpc_execution
     CodeUri: src/gmod_restart/
@@ -128,6 +140,11 @@ Metadata:
       RCON_IP: 23.227.174.90
       RCON_PORT: 29015
       RCON_PASSWORD: !Ref CFCRPRconPassword
+
+    cfcmccreative: &cfcmc_creative_rcon_env
+      RCON_IP: 23.227.174.90
+      RCON_PORT: 25579
+      RCON_PASSWORD: !Ref CFCMCCreativeRconPassword
 
   ssh_variables:
     buffalo: &buffalo_ssh_env
@@ -450,6 +467,20 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfcrp-status
+  
+  CFCMCCreativeRconFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *mc_rcon_defaults
+      Environment:
+        Variables:
+          <<: *cfcmc_creative_rcon_env
+      Events:
+        CFCMCCreativeRcon:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcmc-creative-rcon
 
   # Layers #
   RestartDepLayer:
