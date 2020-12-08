@@ -8,7 +8,7 @@ HOST = getenv("RCON_IP")
 PORT = int(getenv("RCON_PORT"))
 PASSWORD = getenv("RCON_PASSWORD")
 
-print(HOST, PORT, PASSWORD)
+
 def lambda_handler(event, context):
     body = event.get("body", None)
     if body is None:

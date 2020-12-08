@@ -95,6 +95,12 @@ Metadata:
     Handler: app.lambda_handler
     Layers:
       - !Ref LambdaResponseLayer
+  mcstatus: &mc_status_defaults
+    CodeUri: src/mc_status/
+    Handler: app.lambda_handler
+    Layers:
+      - !Ref LambdaResponseLayer
+      - !Ref MCStatusDepLayer
 
   restart: &gmod_restart_defaults
     <<: *vpc_execution
@@ -467,7 +473,18 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfcrp-status
-  
+ 
+  CFCMCPublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *mc_status_defaults
+      Events:
+        CFCRPStatus:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcmc-status
+
   CFCMCCreativeRconFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -483,6 +500,16 @@ Resources:
             Path: /cfcmc-creative-rcon
 
   # Layers #
+  MCStatusDepLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      <<: *layer_meta
+      LayerName: minecraft-status-dependencies
+      Description: Dependencies for cfc nanny mc status
+      ContentUri: layers/minecraft_status_dependencies
+    Metadata:
+      BuildMethod: makefile
+
   RestartDepLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
