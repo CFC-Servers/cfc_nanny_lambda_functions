@@ -55,7 +55,7 @@ def lambda_handler(event, context):
     command = status_with_pvp if include_pvp else status_command
 
     cache_lifetime = 0 if full_status else CACHE_SECONDS
-    fingerprint = f"{interface.address}:{interface.port}:{full_status}"
+    fingerprint = f"{interface.address}:{interface.port}:status:{full_status}"
 
     cached_response = status_cache.get(fingerprint)
     if cached_response: return cached_response

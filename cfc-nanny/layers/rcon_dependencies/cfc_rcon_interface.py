@@ -10,12 +10,20 @@ class RCONInterface:
         self.port = os.getenv("RCON_PORT")
         self.password = os.getenv("RCON_PASSWORD")
 
+        print("Initialized RCON Interface with the following values:")
+        print(f"Address: {self.address}")
+        print(f"Port: {self.port}")
+        print(f"Password: {self.password}")
+
     def issue_command(self, command):
         connection_address = (self.address, int(self.port))
 
         try:
             with valve.rcon.RCON(connection_address, self.password, timeout=5) as rcon:
                 response = rcon(command)
+                print("Rcon response:")
+                print(response)
+
                 if response:
                     return True, response
 
@@ -35,3 +43,6 @@ class RCONInterface:
             print(f"Hit an unknown error when trying to issue: '{command}' to '{self.address}:{self.port}'")
 
             return False, generic_err
+
+        print("No conditions met, assuming failure?")
+        return False
