@@ -45,5 +45,5 @@ def lambda_handler(event, context):
     print("Command output: \n", output.stdout)
 
     output.stdout = clean_output(output.stdout)
-
-    return Response({"stdout": output.stdout})
+    print("Cleaned output: \n", output.stdout)
+    return Response({"stdout": "Restarting Server"})
