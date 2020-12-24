@@ -200,8 +200,8 @@ Resources:
         Variables:
           <<: *cfc3_rcon_env
           <<: *buffalo_ssh_env
-          SERVER_DIRECTORY: "/var/steam/gmod/cfc3_32/"
-          SERVER_NAME: "cfc3_32"
+          SERVER_DIRECTORY: "/var/steam/gmod/cfc3/"
+          SERVER_NAME: "cfc3"
       Events:
         CFC3Restart:
           Type: HttpApi
