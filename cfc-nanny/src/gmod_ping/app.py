@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     if cached_response:
         return cached_response
 
-    success = interface.issue_command("status")
+    success, _ = interface.issue_command("status")
     response = up if success else down
 
     status_cache.set(destination, response)
