@@ -115,7 +115,7 @@ Metadata:
   # Environment
   rcon_variables:
     cfc3: &cfc3_rcon_env
-      RCON_IP: 172.245.14.234
+      RCON_IP: 23.227.174.90
       RCON_PORT: 27015
       RCON_PASSWORD: !Ref CFC3RconPassword
 
@@ -182,7 +182,7 @@ Resources:
       Environment:
         Variables:
           <<: *cfctest_rcon_env
-          <<: *buffalo_ssh_env
+          <<: *lonestar_ssh_env
           SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
           SERVER_NAME: "cfctest"
       Events:
@@ -199,8 +199,8 @@ Resources:
       Environment:
         Variables:
           <<: *cfc3_rcon_env
-          <<: *buffalo_ssh_env
-          SERVER_DIRECTORY: "/var/steam/gmod/cfc3/"
+          <<: *lonestar_ssh_env
+          SERVER_DIRECTORY: "/media/storage/steam/garrysmod/cfc3"
           SERVER_NAME: "cfc3"
       Events:
         CFC3Restart:
@@ -319,8 +319,8 @@ Resources:
       <<: *gmod_update_defaults
       Environment:
         Variables:
-          <<: *buffalo_ssh_env
-          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfc3/scripts/cfc_server_steam_scripts"
+          <<: *lonestar_ssh_env
+          SCRIPTS_DIRECTORY: "/media/storage/steam/garrysmod/cfc3/scripts/cfc_server_steam_scripts"
       Events:
         CFC3Update:
           Type: HttpApi
