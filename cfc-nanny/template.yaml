@@ -10,15 +10,15 @@ Description: >
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Parameters:
-  BuffaloSteamPrivateKey:
-    Description: Required. The ssh private key to use for ssh actions on the Buffalo server
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: 'BuffaloSteamPrivateKey'
-
   LonestarSteamPrivateKey:
     Description: Required. The ssh private key to use for ssh actions on the Lonestar server
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'LonestarSteamPrivateKey'
+
+  CardinalSteamPrivateKey:
+    Description: Required. The ssh private key to use for ssh actions on the Cardinal server
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CardinalSteamPrivateKey'
 
   NannyAuthJsonEnv:
     Description: Required. json data defining the auth environments
@@ -153,17 +153,17 @@ Metadata:
       RCON_PASSWORD: !Ref CFCMCCreativeRconPassword
 
   ssh_variables:
-    buffalo: &buffalo_ssh_env
-      SSH_HOST: 172.245.14.234
-      SSH_PORT: 22
-      SSH_USERNAME: steam
-      SSH_PRIVATE_KEY: !Ref BuffaloSteamPrivateKey
-
     lonestar: &lonestar_ssh_env
       SSH_HOST: 23.227.174.90
       SSH_PORT: 2327
       SSH_USERNAME: steam
       SSH_PRIVATE_KEY: !Ref LonestarSteamPrivateKey
+
+    cardinal: &cardinal_ssh_env
+      SSH_HOST: 104.152.186.202
+      SSH_PORT: 22
+      SSH_USERNAME: steam
+      SSH_PRIVATE_KEY: !Ref CardinalSteamPrivateKey
 
 Resources:
   NannyApi:
@@ -357,8 +357,8 @@ Resources:
       <<: *gmod_update_defaults
       Environment:
         Variables:
-          <<: *buffalo_ssh_env
-          SCRIPTS_DIRECTORY: "/var/steam/gmod/cfc-test/scripts/cfc_server_steam_scripts/"
+          <<: *cardinal_ssh_env
+          SCRIPTS_DIRECTORY: "/var/steam/garrysmod/cfctest/scripts/cfc_server_steam_scripts/"
       Events:
         CFCTestUpdate:
           Type: HttpApi
