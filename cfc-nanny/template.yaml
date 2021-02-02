@@ -138,7 +138,7 @@ Metadata:
       RCON_PASSWORD: !Ref CFC3RconPassword
 
     cfctest: &cfctest_rcon_env
-      RCON_IP: 172.245.14.234
+      RCON_IP: 104.152.186.202
       RCON_PORT: 27016
       RCON_PASSWORD: !Ref CFCTestRconPassword
 
@@ -207,7 +207,7 @@ Resources:
           <<: *cfctest_rcon_env
           <<: *lonestar_ssh_env
           SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
-          SERVER_NAME: "cfctest"
+          SERVER_NAME: "gmodserver"
       Events:
         CFCTestRestart:
           Type: HttpApi
