@@ -37,6 +37,14 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCRPRconPassword'
 
+  CFCPropHuntRconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFCPropHuntRconPassword'
+
+  CFCTTTRconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFCTTTRconPassword'
+
   CFCMCCreativeRconPassword:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCMCCreativeRconPassword'
@@ -147,6 +155,16 @@ Metadata:
       RCON_PORT: 29015
       RCON_PASSWORD: !Ref CFCRPRconPassword
 
+    cfcprophunt: &cfcprophunt_rcon_env
+      RCON_IP: 104.152.186.202
+      RCON_PORT: 27016
+      RCON_PASSWORD: !Ref CFCPropHuntRconPassword
+
+    cfcttt: &cfcttt_rcon_env
+      RCON_IP: 104.152.186.202
+      RCON_PORT: 27017
+      RCON_PASSWORD: !Ref CFCTTTRconPassword
+
     cfcmccreative: &cfcmc_creative_rcon_env
       RCON_IP: 23.227.174.90
       RCON_PORT: 25579
@@ -161,7 +179,7 @@ Metadata:
 
     cardinal: &cardinal_ssh_env
       SSH_HOST: 104.152.186.202
-      SSH_PORT: 22
+      SSH_PORT: 2327
       SSH_USERNAME: steam
       SSH_PRIVATE_KEY: !Ref CardinalSteamPrivateKey
 
@@ -206,8 +224,8 @@ Resources:
         Variables:
           <<: *cfctest_rcon_env
           <<: *lonestar_ssh_env
-          SERVER_DIRECTORY: "/var/steam/gmod/cfc-test/"
-          SERVER_NAME: "gmodserver"
+          SERVER_DIRECTORY: "/var/steam/garrysmod/cfctest/"
+          SERVER_NAME: "cfctest"
       Events:
         CFCTestRestart:
           Type: HttpApi
@@ -381,6 +399,36 @@ Resources:
             <<: *request_properties
             Path: /cfcrp-update
 
+  CFCPropHuntUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_update_defaults
+      Environment:
+        Variables:
+          <<: *lonestar_ssh_env
+          SCRIPTS_DIRECTORY: "/var/steam/garrysmod/cfcprophunt/scripts/cfc_server_steam_scripts/"
+      Events:
+        CFCPropHuntUpdate:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcprophunt-update
+
+  CFCTTTUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_update_defaults
+      Environment:
+        Variables:
+          <<: *lonestar_ssh_env
+          SCRIPTS_DIRECTORY: "/var/steam/garrysmod/cfcttt/scripts/cfc_server_steam_scripts/"
+      Events:
+        CFCTTTUpdate:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcttt-update
+
   # Full Status
   CFC3StatusFunction:
     Type: AWS::Serverless::Function
@@ -429,6 +477,36 @@ Resources:
             <<: *request_properties
             Path: /cfcrp-full-status
 
+  CFCPropHuntStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcprophunt_rcon_env
+          FULL_STATUS: true
+      Events:
+        CFCPropHuntFullStatus:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcprophunt-full-status
+
+  CFCTTTStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcttt_rcon_env
+          FULL_STATUS: true
+      Events:
+        CFCTTTFullStatus:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcttt-full-status
+
   # Public Status
   CFC3PublicStatusFunction:
     Type: AWS::Serverless::Function
@@ -473,7 +551,35 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfcrp-status
- 
+
+  CFCPropHuntPublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcprophunt_rcon_env
+      Events:
+        CFCPropHuntStatus:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcprophunt-status
+
+  CFCTTTPublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcttt_rcon_env
+      Events:
+        CFCTTTStatus:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcttt-status
+
   CFCMCPublicStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
