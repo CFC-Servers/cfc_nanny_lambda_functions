@@ -45,6 +45,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCTTTRconPassword'
 
+  CFCMurderRconPassword:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: 'CFCMurderRconPassword'
+
   CFCMCCreativeRconPassword:
     Type: AWS::SSM::Parameter::Value<String>
     Default: 'CFCMCCreativeRconPassword'
@@ -165,6 +169,11 @@ Metadata:
       RCON_PORT: 27017
       RCON_PASSWORD: !Ref CFCTTTRconPassword
 
+    cfcmurder: &cfcmurder_rcon_env
+      RCON_IP: 104.152.186.202
+      RCON_PORT: 27018
+      RCON_PASSWORD: !Ref CFCMurderRconPassword
+
     cfcmccreative: &cfcmc_creative_rcon_env
       RCON_IP: 23.227.174.90
       RCON_PORT: 25579
@@ -267,6 +276,56 @@ Resources:
             <<: *request_properties
             Path: /cfcrp-restart
 
+  CFCPropHuntRestartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_restart_defaults
+      Environment:
+        Variables:
+          <<: *cfcprophunt_rcon_env
+          <<: *cardinal_ssh_env
+          SERVER_DIRECTORY: "/var/steam/garrysmod/cfcprophunt/"
+          SERVER_NAME: "cfcprophunt"
+      Events:
+        CFCPropHuntRestart:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcprophunt-restart
+
+  CFCTTTRestartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_restart_defaults
+      Environment:
+        Variables:
+          <<: *cfcttt_rcon_env
+          <<: *cardinal_ssh_env
+          SERVER_DIRECTORY: "/var/steam/garrysmod/cfcttt/"
+          SERVER_NAME: "cfcttt"
+      Events:
+        CFCTTTRestart:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcttt-restart
+
+  CFCMurderRestartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_restart_defaults
+      Environment:
+        Variables:
+          <<: *cfcmurder_rcon_env
+          <<: *cardinal_ssh_env
+          SERVER_DIRECTORY: "/var/steam/garrysmod/cfcmurder/"
+          SERVER_NAME: "cfcmurder"
+      Events:
+        CFCMurderRestart:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcmurder-restart
   # Rcon
   CFCTestRconFunction:
     Type: AWS::Serverless::Function
@@ -353,6 +412,47 @@ Resources:
             <<: *public_request_properties
             Path: /cfcrp-ping
 
+  CFCPropHuntPingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_ping_defaults
+      Environment:
+        Variables:
+          <<: *cfcprophunt_rcon_env
+      Events:
+        CFCPropHuntPingCommand:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcprophunt-ping
+
+  CFCTTTPingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_ping_defaults
+      Environment:
+        Variables:
+          <<: *cfcttt_rcon_env
+      Events:
+        CFCTTTPingCommand:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcttt-ping
+
+  CFCMurderPingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_ping_defaults
+      Environment:
+        Variables:
+          <<: *cfcmurder_rcon_env
+      Events:
+        CFCMurderPingCommand:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcmurder-ping
   # Update
   CFC3UpdateFunction:
     Type: AWS::Serverless::Function
@@ -405,7 +505,7 @@ Resources:
       <<: *gmod_update_defaults
       Environment:
         Variables:
-          <<: *lonestar_ssh_env
+          <<: *cardinal_ssh_env
           SCRIPTS_DIRECTORY: "/var/steam/garrysmod/cfcprophunt/scripts/cfc_server_steam_scripts/"
       Events:
         CFCPropHuntUpdate:
@@ -420,7 +520,7 @@ Resources:
       <<: *gmod_update_defaults
       Environment:
         Variables:
-          <<: *lonestar_ssh_env
+          <<: *cardinal_ssh_env
           SCRIPTS_DIRECTORY: "/var/steam/garrysmod/cfcttt/scripts/cfc_server_steam_scripts/"
       Events:
         CFCTTTUpdate:
@@ -428,6 +528,21 @@ Resources:
           Properties:
             <<: *request_properties
             Path: /cfcttt-update
+
+  CFCMurderUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_update_defaults
+      Environment:
+        Variables:
+          <<: *cardinal_ssh_env
+          SCRIPTS_DIRECTORY: "/var/steam/garrysmod/cfcmurder/scripts/cfc_server_steam_scripts/"
+      Events:
+        CFCMurderUpdate:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcmurder-update
 
   # Full Status
   CFC3StatusFunction:
@@ -507,6 +622,21 @@ Resources:
             <<: *request_properties
             Path: /cfcttt-full-status
 
+  CFCMurderStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcmurder_rcon_env
+          FULL_STATUS: true
+      Events:
+        CFCMurderFullStatus:
+          Type: HttpApi
+          Properties:
+            <<: *request_properties
+            Path: /cfcmurder-full-status
+
   # Public Status
   CFC3PublicStatusFunction:
     Type: AWS::Serverless::Function
@@ -579,6 +709,20 @@ Resources:
           Properties:
             <<: *public_request_properties
             Path: /cfcttt-status
+
+  CFCMurderPublicStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      <<: *gmod_status_defaults
+      Environment:
+        Variables:
+          <<: *cfcmurder_rcon_env
+      Events:
+        CFCMurderStatus:
+          Type: HttpApi
+          Properties:
+            <<: *public_request_properties
+            Path: /cfcmurder-status
 
   CFCMCPublicStatusFunction:
     Type: AWS::Serverless::Function
