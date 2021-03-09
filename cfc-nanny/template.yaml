@@ -151,7 +151,7 @@ Metadata:
 
     cfctest: &cfctest_rcon_env
       RCON_IP: 104.152.186.202
-      RCON_PORT: 27016
+      RCON_PORT: 27015
       RCON_PASSWORD: !Ref CFCTestRconPassword
 
     cfcrp: &cfcrp_rcon_env
